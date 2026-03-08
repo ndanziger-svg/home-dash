@@ -1,4 +1,4 @@
-// Weather widget
+// Weather widget - uses Open-Meteo (free, no API key)
 window.WeatherWidget = {
   init() {
     this.iconEl = document.getElementById('weather-icon');
@@ -14,12 +14,18 @@ window.WeatherWidget = {
       if (!res.ok) return;
       const data = await res.json();
 
-      if (data.main && data.weather) {
-        this.tempEl.textContent = `${Math.round(data.main.temp)}°F`;
-        this.descEl.textContent = data.weather[0].description;
-        this.iconEl.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-        this.iconEl.alt = data.weather[0].description;
+      this.tempEl.textContent = `${data.temp}°F`;
+      this.descEl.textContent = data.description;
+
+      // Use emoji icon instead of image
+      this.iconEl.style.display = 'none';
+      if (!this.emojiEl) {
+        this.emojiEl = document.createElement('span');
+        this.emojiEl.className = 'weather-emoji';
+        this.emojiEl.style.fontSize = '36px';
+        this.iconEl.parentNode.insertBefore(this.emojiEl, this.iconEl);
       }
+      this.emojiEl.textContent = data.icon;
     } catch (err) {
       console.warn('Weather fetch failed:', err);
     }
