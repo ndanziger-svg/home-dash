@@ -1,0 +1,18 @@
+{
+  "name": "home-dashboard",
+  "version": "1.0.0",
+  "description": "Google Nest Hub-style smart home dashboard",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "googleapis": "^144.0.0",
+    "node-sonos": "^1.15.0",
+    "yahoo-finance2": "^2.13.2"
+  }
+}

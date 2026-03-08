@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Home Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Timer overlay (always visible when active) -->
+  <div id="timer-overlay" class="timer-overlay hidden"></div>
+
+  <!-- Voice feedback overlay -->
+  <div id="voice-overlay" class="voice-overlay hidden">
+    <div class="voice-indicator">
+      <div class="voice-ring"></div>
+      <div class="voice-ring"></div>
+      <div class="voice-ring"></div>
+    </div>
+    <div id="voice-text" class="voice-text">Listening...</div>
+  </div>
+
+  <!-- Main dashboard container -->
+  <div id="dashboard" class="dashboard">
+    <!-- Ambient background -->
+    <div id="ambient-bg" class="ambient-bg"></div>
+
+    <!-- Auto-dim overlay -->
+    <div id="dim-overlay" class="dim-overlay"></div>
+
+    <!-- Panels container (swipeable) -->
+    <div id="panels" class="panels">
+      <!-- Panel 0: Home (Clock + Weather) -->
+      <div class="panel panel-home active" data-panel="home">
+        <div class="home-content">
+          <div id="clock" class="clock">
+            <div id="clock-time" class="clock-time">12:00</div>
+            <div id="clock-date" class="clock-date">Saturday, March 7</div>
+          </div>
+          <div id="weather-mini" class="weather-mini">
+            <img id="weather-icon" class="weather-icon" src="" alt="">
+            <span id="weather-temp" class="weather-temp">--°</span>
+            <span id="weather-desc" class="weather-desc"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 1: Calendar -->
+      <div class="panel panel-calendar" data-panel="calendar">
+        <div class="panel-header">
+          <h2>Calendar</h2>
+        </div>
+        <div id="calendar-events" class="calendar-events">
+          <div class="loading">Loading events...</div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Cameras -->
+      <div class="panel panel-cameras" data-panel="cameras">
+        <div class="panel-header">
+          <h2>Cameras</h2>
+        </div>
+        <div id="camera-feeds" class="camera-feeds">
+          <div class="loading">No cameras configured</div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Controls (Lights + Sonos) -->
+      <div class="panel panel-controls" data-panel="controls">
+        <div class="panel-header">
+          <h2>Controls</h2>
+        </div>
+        <div class="controls-grid">
+          <div class="controls-section">
+            <h3>Lights</h3>
+            <div id="lights-list" class="lights-list">
+              <div class="loading">Loading lights...</div>
+            </div>
+          </div>
+          <div class="controls-section">
+            <h3>Music</h3>
+            <div id="sonos-controls" class="sonos-controls">
+              <div class="loading">Searching for speakers...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Stocks -->
+      <div class="panel panel-stocks" data-panel="stocks">
+        <div class="panel-header">
+          <h2>Markets</h2>
+        </div>
+        <div id="stocks-list" class="stocks-list">
+          <div class="loading">Loading market data...</div>
+        </div>
+      </div>
+
+      <!-- Panel 5: Recipes -->
+      <div class="panel panel-recipes" data-panel="recipes">
+        <div class="panel-header">
+          <h2>Recipes</h2>
+        </div>
+        <div class="recipe-search">
+          <input type="text" id="recipe-search-input" placeholder="Search recipes..." autocomplete="off">
+          <button id="recipe-search-btn" class="btn-icon">&#x1F50D;</button>
+        </div>
+        <div id="recipe-results" class="recipe-results">
+          <div class="recipe-hint">Search for a recipe or ask by voice</div>
+        </div>
+        <div id="recipe-detail" class="recipe-detail hidden"></div>
+      </div>
+
+      <!-- Panel 6: Timers -->
+      <div class="panel panel-timers" data-panel="timers">
+        <div class="panel-header">
+          <h2>Timers</h2>
+        </div>
+        <div class="timer-controls">
+          <div class="timer-presets">
+            <button class="timer-preset" data-minutes="1">1 min</button>
+            <button class="timer-preset" data-minutes="3">3 min</button>
+            <button class="timer-preset" data-minutes="5">5 min</button>
+            <button class="timer-preset" data-minutes="10">10 min</button>
+            <button class="timer-preset" data-minutes="15">15 min</button>
+            <button class="timer-preset" data-minutes="30">30 min</button>
+            <button class="timer-preset" data-minutes="45">45 min</button>
+            <button class="timer-preset" data-minutes="60">1 hr</button>
+          </div>
+          <div class="timer-custom">
+            <input type="number" id="timer-custom-input" placeholder="Minutes" min="1" max="999">
+            <button id="timer-custom-btn" class="btn-primary">Start Timer</button>
+          </div>
+        </div>
+        <div id="active-timers" class="active-timers"></div>
+      </div>
+    </div>
+
+    <!-- Navigation dots -->
+    <div id="nav-dots" class="nav-dots">
+      <button class="nav-dot active" data-index="0"></button>
+      <button class="nav-dot" data-index="1"></button>
+      <button class="nav-dot" data-index="2"></button>
+      <button class="nav-dot" data-index="3"></button>
+      <button class="nav-dot" data-index="4"></button>
+      <button class="nav-dot" data-index="5"></button>
+      <button class="nav-dot" data-index="6"></button>
+    </div>
+
+    <!-- Mic button (always visible) -->
+    <button id="mic-btn" class="mic-btn" title="Tap to speak or say 'Hey Dashboard'">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/>
+        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/utils/swipe.js"></script>
+  <script src="/js/widgets/clock.js"></script>
+  <script src="/js/widgets/weather.js"></script>
+  <script src="/js/widgets/calendar.js"></script>
+  <script src="/js/widgets/stocks.js"></script>
+  <script src="/js/widgets/lights.js"></script>
+  <script src="/js/widgets/sonos.js"></script>
+  <script src="/js/widgets/cameras.js"></script>
+  <script src="/js/widgets/timers.js"></script>
+  <script src="/js/widgets/recipes.js"></script>
+  <script src="/js/voice/commands.js"></script>
+  <script src="/js/voice/wakeword.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
