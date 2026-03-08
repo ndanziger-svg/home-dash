@@ -12,7 +12,6 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "googleapis": "^144.0.0",
-    "sonos": "^1.15.0",
-    "yahoo-finance2": "^2.13.2"
+    "sonos": "^1.15.0"
   }
 }

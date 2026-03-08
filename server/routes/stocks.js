@@ -15,6 +15,39 @@ const INDEX_NAMES = {
   '^DJI': 'DOW',
 };
 
+// Fetch directly from Yahoo Finance API (bypass unreliable yahoo-finance2 library)
+async function fetchQuote(symbol) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Yahoo returned ${response.status} for ${symbol}`);
+  }
+
+  const data = await response.json();
+  const result = data.chart?.result?.[0];
+  if (!result) throw new Error(`No data for ${symbol}`);
+
+  const meta = result.meta;
+  const price = meta.regularMarketPrice;
+  const prevClose = meta.chartPreviousClose || meta.previousClose;
+  const change = price - prevClose;
+  const changePercent = (change / prevClose) * 100;
+
+  return {
+    symbol,
+    name: INDEX_NAMES[symbol] || meta.shortName || symbol,
+    price,
+    change,
+    changePercent,
+    isIndex: SYMBOLS.indices.includes(symbol),
+  };
+}
+
 router.get('/', async (req, res) => {
   try {
     const now = Date.now();
@@ -22,27 +55,26 @@ router.get('/', async (req, res) => {
       return res.json(stockCache.data);
     }
 
-    const yahooFinance = require('yahoo-finance2').default;
     const allSymbols = [...SYMBOLS.indices, ...SYMBOLS.stocks];
 
     const quotes = await Promise.allSettled(
-      allSymbols.map(symbol => yahooFinance.quote(symbol))
+      allSymbols.map(symbol => fetchQuote(symbol))
     );
 
     const results = quotes
-      .map((result, i) => {
-        if (result.status === 'rejected') return null;
-        const q = result.value;
-        return {
-          symbol: allSymbols[i],
-          name: INDEX_NAMES[allSymbols[i]] || q.shortName || allSymbols[i],
-          price: q.regularMarketPrice,
-          change: q.regularMarketChange,
-          changePercent: q.regularMarketChangePercent,
-          isIndex: SYMBOLS.indices.includes(allSymbols[i]),
-        };
+      .map((result) => {
+        if (result.status === 'rejected') {
+          console.warn('Stock fetch failed:', result.reason?.message);
+          return null;
+        }
+        return result.value;
       })
       .filter(Boolean);
+
+    if (results.length === 0) {
+      console.error('All stock fetches failed');
+      return res.status(502).json({ error: 'Could not fetch any stock data' });
+    }
 
     stockCache = { data: results, timestamp: now };
     res.json(results);

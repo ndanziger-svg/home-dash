@@ -22,25 +22,23 @@ window.RecipesWidget = {
 
     try {
       const res = await fetch(`/api/recipes/search?q=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error('Search failed');
       const data = await res.json();
 
-      if (!data.meals) {
-        // Try ingredient search
-        const res2 = await fetch(`/api/recipes/ingredient?i=${encodeURIComponent(q)}`);
-        const data2 = await res2.json();
-        if (data2.meals) {
-          this.renderResults(data2.meals, true);
-        } else {
-          this.resultsContainer.innerHTML = '<div class="recipe-hint">No recipes found. Try a different search.</div>';
-        }
+      if (!res.ok) {
+        console.error('Recipe API error:', data);
+        this.resultsContainer.innerHTML = `<div class="recipe-hint">Search error: ${data.error || 'Unknown error'}</div>`;
+        return;
+      }
+
+      if (!data.meals || data.meals === null) {
+        this.resultsContainer.innerHTML = '<div class="recipe-hint">No recipes found. Try a different search (e.g. "chicken", "pasta", "soup").</div>';
         return;
       }
 
       this.renderResults(data.meals, false);
     } catch (err) {
-      console.warn('Recipe search failed:', err);
-      this.resultsContainer.innerHTML = '<div class="recipe-hint">Search failed. Please try again.</div>';
+      console.error('Recipe search failed:', err);
+      this.resultsContainer.innerHTML = `<div class="recipe-hint">Search failed: ${err.message}. Check server logs.</div>`;
     }
   },
 
