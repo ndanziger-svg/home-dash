@@ -60,7 +60,7 @@ window.App = {
 
   goToPanel(index) {
     this.currentPanel = index;
-    this.panelsEl.style.transform = `translateX(-${index * 100}%)`;
+    this.panelsEl.style.transform = `translateX(-${index * 100}vw)`;
 
     // Update nav dots
     this.navDots.forEach((dot, i) => {

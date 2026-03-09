@@ -129,7 +129,6 @@
         <div id="recipe-results" class="recipe-results">
           <div class="recipe-hint">Search for a recipe or ask by voice</div>
         </div>
-        <div id="recipe-detail" class="recipe-detail hidden"></div>
       </div>
 
       <!-- Panel 6: Timers -->
@@ -156,6 +155,9 @@
         <div id="active-timers" class="active-timers"></div>
       </div>
     </div>
+
+    <!-- Recipe detail overlay (outside panels so position:fixed works with transforms) -->
+    <div id="recipe-detail" class="recipe-detail no-swipe hidden"></div>
 
     <!-- Navigation dots -->
     <div id="nav-dots" class="nav-dots">
