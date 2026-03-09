@@ -11,13 +11,17 @@ window.LightsWidget = {
   async fetch() {
     try {
       const res = await fetch('/api/smartthings/devices');
+      const data = await res.json();
       if (res.status === 503) {
         this.container.innerHTML = '<div class="loading">SmartThings not configured</div>';
         return;
       }
-      if (!res.ok) return;
+      if (!res.ok) {
+        this.container.innerHTML = `<div class="loading">SmartThings error: ${data.error || 'Unknown'}</div>`;
+        return;
+      }
 
-      this.devices = await res.json();
+      this.devices = data;
       await this.fetchStatuses();
       this.render();
     } catch (err) {

@@ -11,7 +11,12 @@ async function stFetch(path) {
       'Content-Type': 'application/json',
     },
   });
-  return response.json();
+  const data = await response.json();
+  if (!response.ok) {
+    console.error(`SmartThings API ${response.status}:`, JSON.stringify(data));
+    throw new Error(data.message || data.error || `SmartThings API returned ${response.status}`);
+  }
+  return data;
 }
 
 async function stPost(path, body) {
@@ -23,7 +28,12 @@ async function stPost(path, body) {
     },
     body: JSON.stringify(body),
   });
-  return response.json();
+  const data = await response.json();
+  if (!response.ok) {
+    console.error(`SmartThings POST ${response.status}:`, JSON.stringify(data));
+    throw new Error(data.message || data.error || `SmartThings API returned ${response.status}`);
+  }
+  return data;
 }
 
 // List all devices (filtered to lights/switches)
@@ -33,6 +43,10 @@ router.get('/devices', async (req, res) => {
       return res.status(503).json({ error: 'SmartThings token not configured' });
     }
     const data = await stFetch('/devices');
+    if (!data.items || !Array.isArray(data.items)) {
+      console.error('SmartThings unexpected response:', JSON.stringify(data).substring(0, 500));
+      return res.status(502).json({ error: 'Unexpected response from SmartThings API' });
+    }
     const lights = data.items.filter(d =>
       d.components?.some(c =>
         c.capabilities?.some(cap =>
@@ -43,7 +57,7 @@ router.get('/devices', async (req, res) => {
     res.json(lights);
   } catch (err) {
     console.error('SmartThings error:', err.message);
-    res.status(500).json({ error: 'Failed to fetch devices' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -54,7 +68,7 @@ router.get('/devices/:id/status', async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error('SmartThings status error:', err.message);
-    res.status(500).json({ error: 'Failed to fetch device status' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -65,7 +79,7 @@ router.post('/devices/:id/commands', async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error('SmartThings command error:', err.message);
-    res.status(500).json({ error: 'Failed to execute command' });
+    res.status(500).json({ error: err.message });
   }
 });
 

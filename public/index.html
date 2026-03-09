@@ -38,14 +38,30 @@
       <!-- Panel 0: Home (Clock + Weather) -->
       <div class="panel panel-home active" data-panel="home">
         <div class="home-content">
-          <div id="clock" class="clock">
-            <div id="clock-time" class="clock-time">12:00</div>
-            <div id="clock-date" class="clock-date">Saturday, March 7</div>
+          <div class="home-top">
+            <div id="clock" class="clock">
+              <div id="clock-time" class="clock-time">12:00</div>
+              <div id="clock-date" class="clock-date">Saturday, March 7</div>
+            </div>
+            <div class="home-current-weather">
+              <div id="weather-mini" class="weather-mini">
+                <span id="weather-emoji" class="weather-emoji"></span>
+                <span id="weather-temp" class="weather-temp">--°</span>
+              </div>
+              <div id="weather-desc" class="weather-desc-line"></div>
+              <div id="weather-details" class="weather-details"></div>
+              <div id="weather-location" class="weather-location"></div>
+            </div>
           </div>
-          <div id="weather-mini" class="weather-mini">
-            <img id="weather-icon" class="weather-icon" src="" alt="">
-            <span id="weather-temp" class="weather-temp">--°</span>
-            <span id="weather-desc" class="weather-desc"></span>
+          <div class="home-forecasts">
+            <div class="hourly-forecast">
+              <div class="forecast-label">Next hours</div>
+              <div id="hourly-items" class="hourly-items"></div>
+            </div>
+            <div class="daily-forecast">
+              <div class="forecast-label">This week</div>
+              <div id="daily-items" class="daily-items"></div>
+            </div>
           </div>
         </div>
       </div>

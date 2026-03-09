@@ -15,14 +15,14 @@ const INDEX_NAMES = {
   '^DJI': 'DOW',
 };
 
-// Fetch directly from Yahoo Finance API (bypass unreliable yahoo-finance2 library)
-async function fetchQuote(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-    },
-  });
+const YF_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+};
+
+// Fetch quote + intraday chart in one call
+async function fetchQuoteWithChart(symbol) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=5m&range=1d&includePrePost=false`;
+  const response = await fetch(url, { headers: YF_HEADERS });
 
   if (!response.ok) {
     throw new Error(`Yahoo returned ${response.status} for ${symbol}`);
@@ -38,6 +38,13 @@ async function fetchQuote(symbol) {
   const change = price - prevClose;
   const changePercent = (change / prevClose) * 100;
 
+  // Extract intraday price points for sparkline
+  const timestamps = result.timestamp || [];
+  const closes = result.indicators?.quote?.[0]?.close || [];
+  const chart = timestamps
+    .map((ts, i) => closes[i] != null ? { t: ts * 1000, p: closes[i] } : null)
+    .filter(Boolean);
+
   return {
     symbol,
     name: INDEX_NAMES[symbol] || meta.shortName || symbol,
@@ -45,6 +52,8 @@ async function fetchQuote(symbol) {
     change,
     changePercent,
     isIndex: SYMBOLS.indices.includes(symbol),
+    chart,
+    prevClose,
   };
 }
 
@@ -58,7 +67,7 @@ router.get('/', async (req, res) => {
     const allSymbols = [...SYMBOLS.indices, ...SYMBOLS.stocks];
 
     const quotes = await Promise.allSettled(
-      allSymbols.map(symbol => fetchQuote(symbol))
+      allSymbols.map(symbol => fetchQuoteWithChart(symbol))
     );
 
     const results = quotes
